@@ -27,6 +27,16 @@ module.exports = function(grunt) {
             }
         },
 
+        watch: {
+            scripts: {
+                files: ['css/*.css'],
+                tasks: ['cssmin'],
+                options: {
+                    spawn: false,
+                }
+            } 
+        }
+
 
     });
 
@@ -34,8 +44,9 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
+    grunt.loadNpmTasks('grunt-contrib-watch');
 
     // 4. Where we tell Grunt what to do when we type "grunt" into the terminal.
-    grunt.registerTask('default', ['concat', 'uglify', 'cssmin']);
+    grunt.registerTask('default', ['concat', 'uglify', 'cssmin', 'watch']);
 
 };
