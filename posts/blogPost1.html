@@ -1,0 +1,152 @@
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>BC: Angular + D3</title>
+  <link REL="SHORTCUT ICON" HREF="../images/computer.ico">
+  <link rel="stylesheet" href="../css/style.css" type="text/css" media="screen">
+  <link rel="stylesheet" href="../css/grid.css" type="text/css" media="screen">
+  <link rel="stylesheet" href="../css/style.css" type="text/css" media="screen">
+</head>
+
+<body>
+  <div class="menu">
+    <div class="container clearfix">
+
+      <div id="logo" class="grid_3">
+        <img id="logoIMG" data-slide="1" src="../images/computer.png">
+      </div>
+
+      <div id="nav" class="grid_9 omega">
+        <ul class="navigation">
+          <li data-slide="1"><a href="../index.html">Home</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+  <div>
+  	Making D3 charts can be difficult. Integrating these charts with Angular is even harder. Here's how to make it happen:<br />
+  	<br />
+  	A few assumptions:<br />
+  	<ol>
+  	<li>A D3 chart has already been made. We can use the bar chart made in this tutorial:&nbsp;<a href="http://bl.ocks.org/mbostock/7322386" target="_blank">Simple D3 Chart</a>.</li>
+  	<li>Our basic Angular app has already been set up. The name of the app is called 'sampleApp'</li>
+  	</ol>
+  	<div>
+  	We need to put the chart into an Angular <b>Factory</b>. First, let's name our chart 'barchart'. The code to make a factory will look like this:<br />
+  	<br /></div>
+  	<!-- HTML generated using hilite.me --><br />
+  	<div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+  	<pre style="line-height: 125%; margin: 0;"><span style="color: #d0d0d0;">angular.module(</span><span style="color: #ed9d13;">'newSpeakApp'</span><span style="color: #d0d0d0;">)</span>
+  	<span style="color: #d0d0d0;">.factory(</span><span style="color: #ed9d13;">'barChart'</span><span style="color: #d0d0d0;">,</span> <span style="color: #6ab825; font-weight: bold;">function</span><span style="color: #d0d0d0;">()</span> <span style="color: #d0d0d0;">{</span>
+
+  	  <span style="color: #6ab825; font-weight: bold;">var</span> <span style="color: #d0d0d0;">service</span> <span style="color: #d0d0d0;">=</span> <span style="color: #d0d0d0;">{};</span>
+  	  <span style="color: #d0d0d0;">service.render</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">function</span><span style="color: #d0d0d0;">(data,</span> <span style="color: #d0d0d0;">scope,</span> <span style="color: #d0d0d0;">element,</span> <span style="color: #d0d0d0;">attrs,</span> <span style="color: #d0d0d0;">svg)</span> <span style="color: #d0d0d0;">{</span>
+
+  	<span style="color: #d0d0d0;">     svg.selectAll(</span><span style="color: #ed9d13;">'*'</span><span style="color: #d0d0d0;">).remove();</span>
+
+  	<span style="color: #6ab825; font-weight: bold;">     var</span> <span style="color: #d0d0d0;">x</span> <span style="color: #d0d0d0;">=</span> <span style="color: #d0d0d0;">d3.scale.linear()</span>
+  	      <span style="color: #d0d0d0;">.domain([</span><span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">,</span> <span style="color: #d0d0d0;">d3.max(data)])</span>
+  	      <span style="color: #d0d0d0;">.range([</span><span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">,</span> <span style="color: #3677a9;">420</span><span style="color: #d0d0d0;">]);</span>
+
+  	<span style="color: #d0d0d0;">     svg.select(</span><span style="color: #ed9d13;">".chart"</span><span style="color: #d0d0d0;">)</span>
+  	      <span style="color: #d0d0d0;">.selectAll(</span><span style="color: #ed9d13;">"div"</span><span style="color: #d0d0d0;">)</span>
+  	      <span style="color: #d0d0d0;">.data(data)</span>
+  	      <span style="color: #d0d0d0;">.enter().append(</span><span style="color: #ed9d13;">"div"</span><span style="color: #d0d0d0;">)</span>
+  	      <span style="color: #d0d0d0;">.style(</span><span style="color: #ed9d13;">"width"</span><span style="color: #d0d0d0;">,</span> <span style="color: #6ab825; font-weight: bold;">function</span><span style="color: #d0d0d0;">(d)</span> <span style="color: #d0d0d0;">{</span> <span style="color: #6ab825; font-weight: bold;">return</span> <span style="color: #d0d0d0;">x(d)</span> <span style="color: #d0d0d0;">+</span> <span style="color: #ed9d13;">"px"</span><span style="color: #d0d0d0;">;</span> <span style="color: #d0d0d0;">})</span>
+  	      <span style="color: #d0d0d0;">.text(</span><span style="color: #6ab825; font-weight: bold;">function</span><span style="color: #d0d0d0;">(d)</span> <span style="color: #d0d0d0;">{</span> <span style="color: #6ab825; font-weight: bold;">return</span> <span style="color: #d0d0d0;">d;</span> <span style="color: #d0d0d0;">});</span>
+
+  	  <span style="color: #d0d0d0;">};</span><span style="color: #999999; font-style: italic;">//end of .render</span>
+
+  	  <span style="color: #6ab825; font-weight: bold;">return</span> <span style="color: #d0d0d0;">service;</span>
+  	<span style="color: #d0d0d0;">});</span>
+  	</pre>
+  	</div>
+  	<br />
+  	What does this mean?
+
+
+
+  	<br />
+  	<ol>
+  	<li>We created a factory named 'barChart' with our angular app by calling angular.module('sampleApp').factory</li>
+  	<li>The factory function takes two parameters: The name of our factory (called 'barChart'), and a callback function that essentially creates the factory</li>
+  	<li>The callback function returns a service object. The service object has methods attached to it. In this case, we only need one method called render. This will render the D3 chart. Therefore, we post our D3 into render</li>
+  	<li>Note that we will only be using the 'data' parameter and 'svg' parameter. The middle 3 parameters aren't needed for this exercise</li>
+  	<li>There are three changes to the code compared to the tutorial. First, we are clearing everything from our svg element and creating a new bar chart every time this function is run. Also, the svg object selects ('.chart'). Before, the d3 object did this. Finally, the data will be from our scope, not declared in the factory.</li>
+  	</ol>
+  	<div>
+  	Now let's create a custom <b>Directive</b>. Let's name the directive 'bardirective'. Here's the code:<br />
+  	<br />
+  	<div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+  	<pre style="line-height: 125%; margin: 0;"><span style="color: #d0d0d0;">angular.module(</span><span style="color: #ed9d13;">'sampleApp'</span><span style="color: #d0d0d0;">)</span>
+  	<span style="color: #d0d0d0;">.directive(</span><span style="color: #ed9d13;">'bardirective'</span><span style="color: #d0d0d0;">,[</span><span style="color: #ed9d13;">'barChart'</span><span style="color: #d0d0d0;">,</span> <span style="color: #6ab825; font-weight: bold;">function</span><span style="color: #d0d0d0;">(barChart)</span> <span style="color: #d0d0d0;">{</span>
+  	   <span style="color: #6ab825; font-weight: bold;">return</span> <span style="color: #d0d0d0;">{</span>
+  	        <span style="color: #d0d0d0;">restrict:</span> <span style="color: #ed9d13;">'E'</span><span style="color: #d0d0d0;">,</span>
+  	        <span style="color: #d0d0d0;">scope:</span> <span style="color: #d0d0d0;">{</span>
+  	           <span style="color: #d0d0d0;">data:</span> <span style="color: #ed9d13;">'='</span>
+  	        <span style="color: #d0d0d0;">},</span>
+  	        <span style="color: #d0d0d0;">link:</span> <span style="color: #6ab825; font-weight: bold;">function</span><span style="color: #d0d0d0;">(scope,</span> <span style="color: #d0d0d0;">element,</span> <span style="color: #d0d0d0;">attrs)</span> <span style="color: #d0d0d0;">{</span>
+  	              <span style="color: #6ab825; font-weight: bold;">var</span> <span style="color: #d0d0d0;">svg</span> <span style="color: #d0d0d0;">=</span> <span style="color: #d0d0d0;">d3.select(element[</span><span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">]).append(</span><span style="color: #ed9d13;">'svg'</span><span style="color: #d0d0d0;">);</span>
+  	</pre>
+  	<pre style="line-height: 125%; margin: 0;"><pre>              <span style="color: #999999; font-style: italic;">// watch for data changes and re-render</span>
+  	      &nbsp;</pre>
+  	<pre><span style="color: #d0d0d0;">              scope.$watch(</span><span style="color: #ed9d13;">'data'</span><span style="color: #d0d0d0;">,</span> <span style="color: #6ab825; font-weight: bold;">function</span><span style="color: #d0d0d0;">(newVals,</span> <span style="color: #d0d0d0;">oldVals)</span> <span style="color: #d0d0d0;">{</span>
+  	                <span style="color: #6ab825; font-weight: bold;">return</span> <span style="color: #d0d0d0;">barChart.render(newVals,</span> <span style="color: #d0d0d0;">scope,</span> <span style="color: #d0d0d0;">element,</span> <span style="color: #d0d0d0;">attrs,</span> <span style="color: #d0d0d0;">svg);</span>
+  	              <span style="color: #d0d0d0;">},</span> <span style="color: #6ab825; font-weight: bold;">true</span><span style="color: #d0d0d0;">);</span></pre>
+  	</pre>
+  	<pre style="line-height: 125%; margin: 0;">              <span style="color: #999999; font-style: italic;">// Watch for resize event</span>
+  	              <span style="color: #d0d0d0;">scope.$watch(</span><span style="color: #6ab825; font-weight: bold;">function</span><span style="color: #d0d0d0;">()</span> <span style="color: #d0d0d0;">{</span>
+  	                  <span style="color: #6ab825; font-weight: bold;">return</span> <span style="color: #d0d0d0;">angular.element(</span><span style="color: #24909d;">window</span><span style="color: #d0d0d0;">)[</span><span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">].innerWidth;</span>
+  	              <span style="color: #d0d0d0;">},</span> <span style="color: #6ab825; font-weight: bold;">function</span><span style="color: #d0d0d0;">()</span> <span style="color: #d0d0d0;">{</span>
+  	                  <span style="color: #d0d0d0;">barChart.render(scope.data,</span> <span style="color: #d0d0d0;">scope,</span> <span style="color: #d0d0d0;">element,</span> <span style="color: #d0d0d0;">attrs,</span> <span style="color: #d0d0d0;">svg);</span>
+  	              <span style="color: #d0d0d0;">});</span>
+
+
+
+  	       <span style="color: #d0d0d0;">}</span><span style="color: #999999; font-style: italic;">//end of link</span>
+  	   <span style="color: #d0d0d0;">};</span><span style="color: #999999; font-style: italic;">//end of return</span>
+  	<span style="color: #d0d0d0;">}]);</span>
+  	</pre>
+  	</div>
+  	<br />
+  	Ok, so that's a lot of code. Let's take this step by step.<br />
+  	<ol>
+  	<li>Similar to our factory, we created a directive by calling angular.module('sampleApp').directive</li>
+  	<li>The directive function takes two parameters - the name of our directive (called 'bardirective') and an array</li>
+  	<li>The 0th index of the array is the name of the factory we will be using inside the directive - 'barChart'</li>
+  	<li>The next index in the array is the callback function that Angular uses makes the directive. The callback function's parameter is the name of the factory we are using. Notice how the parameter is <b><span style="color: red;">not</span></b> in quotes.</li>
+  	<li>The callback function returns an object. Let's dig a little deeper:</li>
+  	<ol>
+  	<li>restrict: Specifies what type of directive it will be. 'E' stands for element. Since we will be using this directive as an element, we restricted this directive to only be an element. This makes more sense in the next code snippet below.</li>
+  	<li>scope: The directive we are making can be used in any html template in your angular app. And remember, templates are associated with controllers. We are now creating a 'data' tag for this directive, and it will be linked up to whatever variable we choose to link it up to in the controller's scope. This seems a little vague and confusing, but will make more sense in the next code snippet below.</li>
+  	<li>link: this does all the magic. Going further down the rabbit hole....</li>
+  	<ol>
+  	<li>Element[0] is the 'bardirective' we just created. So the first line of this function creates the svg object and appends it to the directive.</li>
+  	<li>The next snippet watches for the 'data' property of scope to change. Remember, we will be linking the 'data' property to a variable in our scope (which will presumably be our barchart data). So if the barchart data in the controller changes, it will trigger this event. When this event is triggered, it calls barChart.render. We can do this because we passed in our factory as parameters above. barChart.render will update the chart for any changes to the data.</li>
+  	<li>Also, if the look or size of the chart depends on the size of the window, we want to re-render the chart every time the window changes. The next block of code accomplishes this.</li>
+  	</ol>
+  	</ol>
+  	</ol>
+  	<div>
+  	Now what does our directive even look like? I'm happy you asked:<br />
+  	<!-- HTML generated using hilite.me --><br />
+  	<div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+  	<pre style="line-height: 125%; margin: 0;"><span style="color: #d0d0d0;">&lt;bardir</span> <span style="color: #d0d0d0;">data=</span><span style="color: #ed9d13;">"barData"</span><span style="color: #d0d0d0;">&gt;&lt;</span><span style="background-color: #e3d2d2; color: #a61717;">/bardir&gt;</span>
+  	</pre>
+  	</div>
+  	<br />
+  	The 'data' tag is linked to a variable in the scope's controller called 'barData'. In the controller, it could look like this:<br />
+  	<br />
+  	<div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+  	<pre style="line-height: 125%; margin: 0;"><span style="color: #d0d0d0;">$scope.barData</span> <span style="color: #d0d0d0;">=</span> <span style="color: #d0d0d0;">[</span><span style="color: #3677a9;">4</span><span style="color: #d0d0d0;">,</span> <span style="color: #3677a9;">8</span><span style="color: #d0d0d0;">,</span> <span style="color: #3677a9;">15</span><span style="color: #d0d0d0;">,</span> <span style="color: #3677a9;">16</span><span style="color: #d0d0d0;">,</span> <span style="color: #3677a9;">23</span><span style="color: #d0d0d0;">,</span> <span style="color: #3677a9;">42</span><span style="color: #d0d0d0;">];</span>
+  	</pre>
+  	</div>
+  	<br />
+  	So now if the $scope.barData ever changes, this is linked up to the 'data' tag in the directive. The 'data' tag in the directive is the 'data' property in the 'scope' object in the callback function that makes the directive. When the 'data' property changes, it triggers a re-rendering event for the barChart factory.<br />
+  	<br />
+  	And there you have it, a custom directive integrating D3.<br />
+  	<br /></div>
+  	</div>
+
+  </div>
+</body>

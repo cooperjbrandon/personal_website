@@ -1,0 +1,169 @@
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>BC: AI NPC</title>
+  <link REL="SHORTCUT ICON" HREF="../images/computer.ico">
+  <link rel="stylesheet" href="../css/style.css" type="text/css" media="screen">
+  <link rel="stylesheet" href="../css/grid.css" type="text/css" media="screen">
+  <link rel="stylesheet" href="../css/style.css" type="text/css" media="screen">
+</head>
+
+<body>
+  <div class="menu">
+    <div class="container clearfix">
+
+      <div id="logo" class="grid_3">
+        <img id="logoIMG" data-slide="1" src="../images/computer.png">
+      </div>
+
+      <div id="nav" class="grid_9 omega">
+        <ul class="navigation">
+          <li data-slide="1"><a href="../index.html">Home</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+  <div class = "blogPost">
+    I implemented the artificial intelligence on the computer controlled players for <a href="http://satellite-game.com/" target="_blank">Satellite Game</a>. Here's how I did it:<br />
+    <br />
+    The keyword here is 'Artificial'. The bots (the name of the computer controlled players) aren't smart. They use the same logic a human would use to make decisions. The first step in the process is to tell the bots which direction to turn to.<br />
+    <br />
+    In Physijs (with Three.js), every item on screen comes with a 'root'. The root is essentially the 3d object in the scene. The root has various properties and methods such as position, rotation, angular velocity, and linear velocity. Assuming a root is already set up on the bot, add a Three.js camera to the bot:<br />
+    <br />
+    <!-- HTML generated using hilite.me --><br />
+    <div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+    <pre style="line-height: 125%; margin: 0;">    <span style="color: #999999; font-style: italic;">    //Create a camera for the bot</span>
+        <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.camera</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">new</span> <span style="color: #d0d0d0;">THREE.PerspectiveCamera(</span><span style="color: #3677a9;">35</span><span style="color: #d0d0d0;">,</span> <span style="color: #3677a9;">1</span><span style="color: #d0d0d0;">,</span> <span style="color: #3677a9;">1</span><span style="color: #d0d0d0;">,</span> <span style="color: #3677a9;">300000</span><span style="color: #d0d0d0;">);</span>
+
+        <span style="color: #999999; font-style: italic;">// Root camera to the bot's position</span>
+        <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.root.add(</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.camera</span> <span style="color: #d0d0d0;">);</span>
+
+        <span style="color: #999999; font-style: italic;">// Setup camera at bot root</span>
+        <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.camera.position.set(</span> <span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">,</span> <span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">,</span> <span style="color: #3677a9;">0</span> <span style="color: #d0d0d0;">);</span>
+    </pre>
+    </div>
+    <br />
+    Once you determine a target for the bot, get the target's 3D position using .clone(), and convert the 3D position into a 2D projection:<br />
+    <br />
+    <div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+    <pre style="line-height: 125%; margin: 0;">      <span style="color: #d0d0d0;">    vTarget3D</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.target.root.position.clone();</span>
+          <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.projector</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">new</span> <span style="color: #d0d0d0;">THREE.Projector();</span>
+          <span style="color: #d0d0d0;">vTarget2D</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.projector.projectVector(vTarget3D,</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.camera);</span>
+    </pre>
+    </div>
+    <br />
+    vTarget2D is an object with a x, y, and z property, and corresponds to whichever direction the bot is facing. If the z property is greater than 1, the target is behind the bot. If the z property is less than 1, the target is in front of the bot. The x property is left and right. So if x is negative, the target is to the left of the bot. If x is positive, the target is to the right of the bot. The y property is above and below. So if y is negative, the the target is below the bot. If y is positive, the target is above the bot.<br />
+    <br />
+    Now assume z is below 1, x is negative, and y is positive. This means the target is in front, above, and to the left of the bot. We need to make the bot turn up and to the left.<br />
+    <br />
+    <!-- HTML generated using hilite.me --><br />
+    <div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+    <pre style="line-height: 125%; margin: 0;"><span style="color: #6ab825; font-weight: bold;">    var</span> <span style="color: #d0d0d0;">maxSpeed</span> <span style="color: #d0d0d0;">=</span> <span style="color: #3677a9;">80</span><span style="color: #d0d0d0;">;</span>
+
+    <span style="color: #6ab825; font-weight: bold;">var</span> <span style="color: #d0d0d0;">thrustScalar</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.thrustImpulse</span> <span style="color: #d0d0d0;">/</span> <span style="color: #d0d0d0;">maxSpeed</span> <span style="color: #d0d0d0;">+</span> <span style="color: #3677a9;">1</span><span style="color: #d0d0d0;">;</span>
+
+    <span style="color: #6ab825; font-weight: bold;">if</span> <span style="color: #d0d0d0;">(x</span> <span style="color: #d0d0d0;">&lt;</span> <span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">)</span> <span style="color: #d0d0d0;">{</span>
+      <span style="color: #d0d0d0;">yaw</span> <span style="color: #d0d0d0;">=</span> <span style="color: #24909d;">Math</span><span style="color: #d0d0d0;">.PI/</span><span style="color: #3677a9;">4</span> <span style="color: #d0d0d0;">/</span> <span style="color: #d0d0d0;">thrustScalar;</span>
+    <span style="color: #d0d0d0;">}</span> <span style="color: #6ab825; font-weight: bold;">else</span> <span style="color: #d0d0d0;">{</span>
+      <span style="color: #d0d0d0;">yaw</span> <span style="color: #d0d0d0;">=</span> <span style="color: #d0d0d0;">-</span><span style="color: #3677a9;">1</span><span style="color: #d0d0d0;">*</span> <span style="color: #24909d;">Math</span><span style="color: #d0d0d0;">.PI/</span><span style="color: #3677a9;">4</span> <span style="color: #d0d0d0;">/</span> <span style="color: #d0d0d0;">thrustScalar;</span>
+    <span style="color: #d0d0d0;">}</span>
+    </pre>
+    </div>
+    <br />
+    The thrustImpulse is just how fast the bot is going at the moment this code is run. As shown above, to make the bot turn right, just multiply yaw by -1. The same can be done for up and down:<br />
+    <br />
+    <!-- HTML generated using hilite.me --><br />
+    <div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+    <pre style="line-height: 125%; margin: 0;"><span style="color: #6ab825; font-weight: bold;">    if</span> <span style="color: #d0d0d0;">(y</span> <span style="color: #d0d0d0;">&lt;</span> <span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">)</span> <span style="color: #d0d0d0;">{</span>
+      <span style="color: #d0d0d0;">pitch</span> <span style="color: #d0d0d0;">=</span> <span style="color: #d0d0d0;">-</span><span style="color: #3677a9;">1</span> <span style="color: #d0d0d0;">*</span> <span style="color: #24909d;">Math</span><span style="color: #d0d0d0;">.PI/</span><span style="color: #3677a9;">4</span> <span style="color: #d0d0d0;">/</span> <span style="color: #d0d0d0;">thrustScalar;</span>
+    <span style="color: #d0d0d0;">}</span> <span style="color: #6ab825; font-weight: bold;">else</span> <span style="color: #d0d0d0;">{</span>
+      <span style="color: #d0d0d0;">pitch</span> <span style="color: #d0d0d0;">=</span> <span style="color: #24909d;">Math</span><span style="color: #d0d0d0;">.PI/</span><span style="color: #3677a9;">4</span> <span style="color: #d0d0d0;">/</span> <span style="color: #d0d0d0;">thrustScalar;</span>
+    <span style="color: #d0d0d0;">}</span>
+    </pre>
+    </div>
+    <br />
+    There is also a 'roll' variable which we set to 0, because doesn't change what direction we are facing.&nbsp;Now let's apply these variables to the root. The following code will get the bot's current angular velocity and create a new angular velocity based off the pitch, yaw and roll we are sending in:<br />
+    <br />
+    <div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+    <pre style="line-height: 125%; margin: 0;">    <span style="color: #6ab825; font-weight: bold;">    var</span> <span style="color: #d0d0d0;">angularVelocity</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.root.getAngularVelocity().clone();</span>
+        <span style="color: #6ab825; font-weight: bold;">var</span> <span style="color: #d0d0d0;">rotationMatrix</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">new</span> <span style="color: #d0d0d0;">THREE.Matrix4();</span>
+        <span style="color: #d0d0d0;">rotationMatrix.extractRotation(</span><span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.root.matrix);</span>
+
+        <span style="color: #d0d0d0;">angularVelocity</span> <span style="color: #d0d0d0;">=</span> <span style="color: #d0d0d0;">angularVelocity.clone().divideScalar(</span><span style="color: #6ab825;"><b>4</b></span><span style="color: #d0d0d0; line-height: 125%;">);</span></pre>
+    <pre style="line-height: 125%; margin: 0;">    <span style="color: #6ab825; font-weight: bold;">    this</span><span style="color: #d0d0d0;">.root.setAngularVelocity(angularVelocity);</span>
+
+        <span style="color: #6ab825; font-weight: bold;">var</span> <span style="color: #d0d0d0;">newAngularVelocity</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">new</span> <span style="color: #d0d0d0;">THREE.Vector3(pitch,</span> <span style="color: #d0d0d0;">yaw,</span> <span style="color: #d0d0d0;">roll).applyMatrix4(rotationMatrix).add(angularVelocity);</span></pre>
+    <pre style="line-height: 125%; margin: 0;">
+        <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.root.setAngularVelocity(newAngularVelocity);</span>
+    </pre>
+    </div>
+    <br />
+    We now have the bot turning to the target. Next, let's determine if the bot should increase or decrease speed. Get the distance to the target by using the distanceTo method in Physijs. This method just uses the&nbsp;<i style="background-color: white; font-family: 'Times New Roman', 'Nimbus Roman No9 L', Times, serif; font-size: 15px; line-height: 19px; white-space: nowrap;">x</i><sup style="background-color: white; font-family: 'Times New Roman', 'Nimbus Roman No9 L', Times, serif; line-height: 1em; white-space: nowrap;">2</sup>,<sup style="background-color: white; font-family: 'Times New Roman', 'Nimbus Roman No9 L', Times, serif; line-height: 1em; white-space: nowrap;">&nbsp;&nbsp;</sup><i style="background-color: white; font-family: 'Times New Roman', 'Nimbus Roman No9 L', Times, serif; font-size: 15px; line-height: 19px; white-space: nowrap;">y</i><sup style="background-color: white; font-family: 'Times New Roman', 'Nimbus Roman No9 L', Times, serif; line-height: 1em; white-space: nowrap;">2</sup>,&nbsp;<sup style="background-color: white; font-family: 'Times New Roman', 'Nimbus Roman No9 L', Times, serif; line-height: 1em; white-space: nowrap;">&nbsp;</sup><i style="background-color: white; font-family: 'Times New Roman', 'Nimbus Roman No9 L', Times, serif; font-size: 15px; line-height: 19px; white-space: nowrap;">z</i><sup style="background-color: white; font-family: 'Times New Roman', 'Nimbus Roman No9 L', Times, serif; line-height: 1em; white-space: nowrap;">2</sup>&nbsp;pythagorean theorem to get the distance.<br />
+    <br />
+    <div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+    <pre style="line-height: 125%; margin: 0;"><span style="color: #6ab825; font-weight: bold;">        var</span> <span style="color: #d0d0d0;">distance</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.root.position.distanceTo(</span><span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.target.root.position)</span></pre>
+    </div>
+    <div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+    <pre style="line-height: 125%; margin: 0;">    <span style="color: #6ab825; font-weight: bold;">    var</span> <span style="color: #d0d0d0;">now</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">new</span> <span style="color: #24909d;">Date</span><span style="color: #d0d0d0;">(</span> <span style="color: #d0d0d0;">).getTime(</span> <span style="color: #d0d0d0;">);</span>
+        <span style="color: #6ab825; font-weight: bold;">var</span> <span style="color: #d0d0d0;">difference</span> <span style="color: #d0d0d0;">=</span> <span style="color: #d0d0d0;">now</span> <span style="color: #d0d0d0;">-</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.lastTime;</span></pre>
+    </div>
+    <div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+    <pre style="line-height: 125%; margin: 0;">    <span style="color: #6ab825; font-weight: bold;">    var</span> <span style="color: #d0d0d0;">thrust</span> <span style="color: #d0d0d0;">=</span> <span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">;</span>
+        <span style="color: #6ab825; font-weight: bold;">var</span> <span style="color: #d0d0d0;">brakes</span> <span style="color: #d0d0d0;">=</span> <span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">;</span>
+
+        <span style="color: #6ab825; font-weight: bold;">var</span>  <span style="color: #d0d0d0;">maxDistance</span> <span style="color: #d0d0d0;">=</span> <span style="color: #3677a9;">1000</span><span style="color: #d0d0d0;">,</span> <span style="color: #d0d0d0;">minDistance</span> <span style="color: #d0d0d0;">=</span> <span style="color: #3677a9;">8000</span><span style="color: #d0d0d0;">;</span>
+        <span style="color: #6ab825; font-weight: bold;">if</span> <span style="color: #d0d0d0;">(distance</span> <span style="color: #d0d0d0;">&gt;</span> <span style="color: #d0d0d0;">maxDistance)</span> <span style="color: #d0d0d0;">{</span>
+          <span style="color: #d0d0d0;">thrust</span> <span style="color: #d0d0d0;">=</span> <span style="color: #3677a9;">1</span><span style="color: #d0d0d0;">;</span>
+        <span style="color: #d0d0d0;">}</span>
+        <span style="color: #6ab825; font-weight: bold;">else</span> <span style="color: #6ab825; font-weight: bold;">if</span> <span style="color: #d0d0d0;">(distance</span> <span style="color: #d0d0d0;">&lt;</span> <span style="color: #d0d0d0;">minDistance)</span> <span style="color: #d0d0d0;">{</span>
+          <span style="color: #d0d0d0;">brakes</span> <span style="color: #d0d0d0;">=</span> <span style="color: #3677a9;">1</span><span style="color: #d0d0d0;">;</span>
+        <span style="color: #d0d0d0;">}</span> <span style="color: #6ab825; font-weight: bold;">else</span> <span style="color: #d0d0d0;">{</span>
+          <span style="color: #6ab825; font-weight: bold;">var</span> <span style="color: #d0d0d0;">ratio</span> <span style="color: #d0d0d0;">=</span> <span style="color: #d0d0d0;">(distance</span> <span style="color: #d0d0d0;">-</span> <span style="color: #d0d0d0;">minDistance)</span> <span style="color: #d0d0d0;">/</span> <span style="color: #d0d0d0;">(maxDistance</span> <span style="color: #d0d0d0;">-</span> <span style="color: #d0d0d0;">minDistance);</span>
+          <span style="color: #6ab825; font-weight: bold;">var</span> <span style="color: #d0d0d0;">optimumSpeed</span> <span style="color: #d0d0d0;">=</span> <span style="color: #d0d0d0;">maxSpeed</span> <span style="color: #d0d0d0;">*</span> <span style="color: #d0d0d0;">ratio;</span>
+          <span style="color: #6ab825; font-weight: bold;">if</span> <span style="color: #d0d0d0;">(optimumSpeed</span> <span style="color: #d0d0d0;">&lt;</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.thrustImpulse)</span> <span style="color: #d0d0d0;">{</span> <span style="color: #d0d0d0;">brakes</span> <span style="color: #d0d0d0;">=</span> <span style="color: #3677a9;">1</span><span style="color: #d0d0d0;">;</span> <span style="color: #d0d0d0;">}</span>
+          <span style="color: #6ab825; font-weight: bold;">if</span> <span style="color: #d0d0d0;">(optimumSpeed</span> <span style="color: #d0d0d0;">&gt;</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.thrustImpulse)</span> <span style="color: #d0d0d0;">{</span> <span style="color: #d0d0d0;">thrust</span> <span style="color: #d0d0d0;">=</span> <span style="color: #3677a9;">1</span><span style="color: #d0d0d0;">;</span> <span style="color: #d0d0d0;">}</span>
+        <span style="color: #d0d0d0;">}</span>
+
+        <span style="color: #6ab825; font-weight: bold;">if</span> <span style="color: #d0d0d0;">(thrust</span> <span style="color: #d0d0d0;">&amp;&amp;</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.thrustImpulse</span> <span style="color: #d0d0d0;">&lt;</span> <span style="color: #d0d0d0;">maxSpeed){</span>
+          <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.thrustImpulse</span> <span style="color: #d0d0d0;">+=</span> <span style="color: #d0d0d0;">difference;</span>
+        <span style="color: #d0d0d0;">}</span>
+
+        <span style="color: #6ab825; font-weight: bold;">if</span> <span style="color: #d0d0d0;">(brakes</span> <span style="color: #d0d0d0;">&amp;&amp;</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.thrustImpulse</span> <span style="color: #d0d0d0;">&gt;</span> <span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">){</span>
+          <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.thrustImpulse</span> <span style="color: #d0d0d0;">-=</span> <span style="color: #d0d0d0;">difference;</span>
+        <span style="color: #d0d0d0;">}</span>
+    </pre>
+    </div>
+    <br />
+    So what's going on here? If the target's distance from the bot is further than the max distance, we want the bot to go as fast as possible. If the target's distance from the bot is closer than the minimum distance, we want to apply the brakes. Anywhere in between the range, we want the bot's speed to match the ratio in the range.<br />
+    <br />
+    If the bot decides to thrust and it's not already going the max speed, then we increase the speed by the 'difference'. The 'difference' is just the time between when this code is run, and when this code was run in the previous frame. The same logic applies for brakes.<br />
+    <br />
+    Now we apply the thrustImpulse to the bot's linear velocity:<br />
+    <br />
+    <!-- HTML generated using hilite.me --><br />
+    <div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+    <pre style="line-height: 125%; margin: 0;">    <span style="color: #6ab825; font-weight: bold;">    var</span> <span style="color: #d0d0d0;">linearVelocity</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.root.getLinearVelocity().clone();</span>
+        <span style="color: #6ab825; font-weight: bold;">var</span> <span style="color: #d0d0d0;">impulse</span> <span style="color: #d0d0d0;">=</span> <span style="color: #d0d0d0;">linearVelocity.clone().negate();</span>
+        <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.root.applyCentralImpulse(impulse);</span>
+
+        <span style="color: #6ab825; font-weight: bold;">var</span> <span style="color: #d0d0d0;">getForceVector</span> <span style="color: #d0d0d0;">=</span> <span style="color: #6ab825; font-weight: bold;">new</span> <span style="color: #d0d0d0;">THREE.Vector3(</span><span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">,</span><span style="color: #3677a9;">0</span><span style="color: #d0d0d0;">,</span> <span style="color: #d0d0d0;">-</span><span style="color: #3677a9;">1</span><span style="color: #d0d0d0;">*</span><span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.thrustImpulse).applyMatrix4(rotationMatrix);</span>
+        <span style="color: #6ab825; font-weight: bold;">this</span><span style="color: #d0d0d0;">.root.applyCentralImpulse(getForceVector);</span>
+    </pre>
+    </div>
+    <br />
+    Now we have the bot going to the target's position. This code is run every animation frame, or roughly 60 times per second.<br />
+    <br />
+    Finally, let's update the this.lastTime variable for the 'difference' calculation. Also, let's have the bot fire a bullet if the target is in front of the bot and is close to the center of the bots vision.<br />
+    <br />
+    <!-- HTML generated using hilite.me --><br />
+    <div style="background: #202020; border-width: .1em .1em .1em .8em; border: solid gray; overflow: auto; padding: .2em .6em; width: auto;">
+    <pre style="line-height: 125%; margin: 0;"><span style="color: #6ab825; font-weight: bold;">    this</span><span style="color: #d0d0d0;">.lastTime</span> <span style="color: #d0d0d0;">=</span> <span style="color: #d0d0d0;">now;</span>
+    <span style="color: #6ab825; font-weight: bold;">if</span> <span style="color: #d0d0d0;">(</span><span style="color: #24909d;">Math</span><span style="color: #d0d0d0;">.abs(vTarget2D.x)</span> <span style="color: #d0d0d0;">&lt;=</span> <span style="color: #3677a9;">0.15</span> <span style="color: #d0d0d0;">&amp;&amp;</span> <span style="color: #24909d;">Math</span><span style="color: #d0d0d0;">.abs(vTarget2D.y)</span> <span style="color: #d0d0d0;">&lt;=</span> <span style="color: #3677a9;">0.15</span> <span style="color: #d0d0d0;">&amp;&amp;</span> <span style="color: #d0d0d0;">vTarget2D.z</span> <span style="color: #d0d0d0;">&lt;</span> <span style="color: #3677a9;">1</span><span style="color: #d0d0d0;">)</span> <span style="color: #d0d0d0;">{</span>
+      <span style="color: #999999; font-style: italic;">//Your code goes here to emit a 'fire' event</span>
+    <span style="color: #d0d0d0;">}</span>
+    </pre>
+    </div>
+    <br />
+    As you can see, the bots aren't that smart. They just position themselves to look at the target, and apply brakes or thrust based off the distance away.
+  </div>
+</body>
